@@ -5,17 +5,15 @@
  */
 package be.marcowillems.connect4ai.players;
 
+import be.marcowillems.connect4ai.Settings;
 import be.marcowillems.connect4ai.game.Board;
 import java.util.PriorityQueue;
-import java.util.Random;
 
 /**
  *
  * @author Marco Willems
  */
 public class SimpleAIPlayer extends Player {
-
-    private final Random rg = new Random(System.currentTimeMillis());
 
     @Override
     public boolean _doMove(Board b, boolean isP1) {
@@ -249,10 +247,10 @@ public class SimpleAIPlayer extends Player {
         }
 
         // Random move
-        int move = rg.nextInt(b.getWidth());
+        int move = Settings.rg.nextInt(b.getWidth());
         int result = b.pieceWillFallInRow(move);
         while (result == -1) {
-            move = rg.nextInt(b.getWidth());
+            move = Settings.rg.nextInt(b.getWidth());
             result = b.pieceWillFallInRow(move);
         }
         nextQueue.add(new NextMove(move, 9));

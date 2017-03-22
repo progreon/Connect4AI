@@ -5,8 +5,8 @@
  */
 package be.marcowillems.connect4ai.nn;
 
+import be.marcowillems.connect4ai.Settings;
 import be.marcowillems.connect4ai.util.Matrix;
-import java.util.Random;
 
 /**
  *
@@ -14,7 +14,6 @@ import java.util.Random;
  */
 public class FeedForwardNN {
 
-    private final Random rg = new Random(System.currentTimeMillis());
     private static final double minRand = -1.0;
     private static final double maxRand = +1.0;
 
@@ -53,9 +52,9 @@ public class FeedForwardNN {
         for (int w = 0; w < weights.length; w++) { // for each layer int he neural net
             for (int r = 0; r < weights[w].h; r++) {
                 for (int c = 0; c < weights[w].w; c++) {
-                    int p = rg.nextInt(parents.length);
-                    if (rg.nextDouble() < mutation) {
-                        weights[w].set(r, c, range * rg.nextDouble() + minRand);
+                    int p = Settings.rg.nextInt(parents.length);
+                    if (Settings.rg.nextDouble() < mutation) {
+                        weights[w].set(r, c, range * Settings.rg.nextDouble() + minRand);
                     } else {
                         weights[w].set(r, c, parents[p].weights[w].get(r, c));
                     }

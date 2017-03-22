@@ -5,8 +5,8 @@
  */
 package be.marcowillems.connect4ai.players;
 
+import be.marcowillems.connect4ai.Settings;
 import be.marcowillems.connect4ai.game.Board;
-import java.util.Random;
 
 /**
  *
@@ -14,14 +14,12 @@ import java.util.Random;
  */
 public class RandomPlayer extends Player {
 
-    private final Random rg = new Random(System.currentTimeMillis());
-
     @Override
     public boolean _doMove(Board b, boolean isP1) {
         if (b.hasSpaceLeft()) {
             boolean success = false;
             while (!success) {
-                int move = rg.nextInt(b.getWidth());
+                int move = Settings.rg.nextInt(b.getWidth());
                 success = b.put(move, isP1);
             }
             return true;

@@ -16,11 +16,16 @@ public abstract class Player {
 
     private int moves = 0;
     private int draws = 0;
+    private int errors = 0;
     private int losses = 0;
     private int wins = 0;
 
     public void addDraw() {
         draws++;
+    }
+
+    public void addError() {
+        errors++;
     }
 
     public void addLoss() {
@@ -42,8 +47,24 @@ public abstract class Player {
         return moves * 1.0 / getPlaycount();
     }
 
+    public final double getDrawRate() {
+        return draws * 1.0 / getPlaycount();
+    }
+
     public final int getDraws() {
         return draws;
+    }
+
+    public final double getErrorRate() {
+        return errors * 1.0 / getPlaycount();
+    }
+
+    public final int getErrors() {
+        return errors;
+    }
+
+    public final double getLossRate() {
+        return losses * 1.0 / getPlaycount();
     }
 
     public final int getLosses() {
@@ -51,7 +72,16 @@ public abstract class Player {
     }
 
     protected final int getPlaycount() {
-        return draws + losses + wins;
+        return draws + errors + losses + wins;
+    }
+
+    /**
+     * Fitness function
+     *
+     * @return
+     */
+    public final double getScore() {
+        return ((wins * 1.0 + (draws * Settings.DRAW_WEIGHT)) / getPlaycount()) + (getAvgMovecount() * Settings.MOVES_WEIGHT) + (getErrorRate() * Settings.ERROR_WEIGHT);
     }
 
     public final double getWinRate() {
@@ -60,18 +90,6 @@ public abstract class Player {
 
     public final int getWins() {
         return wins;
-    }
-
-    public final double getScore() {
-        return getScore(0.5);
-    }
-
-    public final double getScore(double drawWeight) {
-        return ((wins * 1.0 + (draws * drawWeight)) / getPlaycount());
-    }
-
-    public final double getScore(double drawWeight, double movesWeight) {
-        return getScore(drawWeight) - ((getAvgMovecount() * movesWeight) / (Settings.BOARD_WIDTH * Settings.BOARD_HEIGHT));
     }
 
 }

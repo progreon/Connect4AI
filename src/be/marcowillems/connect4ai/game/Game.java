@@ -6,11 +6,9 @@
 package be.marcowillems.connect4ai.game;
 
 import be.marcowillems.connect4ai.Settings;
-import be.marcowillems.connect4ai.machinelearning.Population;
 import be.marcowillems.connect4ai.players.Player;
-import be.marcowillems.connect4ai.players.FFNNAIPlayer;
-import be.marcowillems.connect4ai.players.SimpleAIPlayer;
 import be.marcowillems.connect4ai.nn.FeedForwardNN;
+import be.marcowillems.connect4ai.players.FFNNAIPlayer;
 
 /**
  *
@@ -20,7 +18,7 @@ public class Game {
 
     public static enum State {
 
-        PLAYING, DRAW, P1WON, P2WON;
+        PLAYING, DRAW, P1WON, P2WON, ERROR;
     }
 
     public final Board board;
@@ -37,11 +35,12 @@ public class Game {
         state = State.PLAYING;
     }
 
-    public State play() {
-        return play(false);
+    public State play(boolean p1Starts) {
+        return play(p1Starts, false);
     }
 
-    public State play(boolean withPrints) {
+    public State play(boolean p1Starts, boolean withPrints) {
+        isTurnP1 = p1Starts;
         while (state == State.PLAYING) {
             if (withPrints) {
                 System.out.println(board);
@@ -58,19 +57,35 @@ public class Game {
                 p1.addLoss();
                 p2.addWin();
                 break;
+            case ERROR:
+                break;
             default:
                 p1.addDraw();
                 p2.addDraw();
                 break;
+        }
+        if (withPrints) {
+            System.out.println(board);
+            System.out.println("Game result: " + state);
         }
         return state;
     }
 
     private State doTurn() {
         if (isTurnP1) {
-            p1.doMove(board, true);
+            if (!p1.doMove(board, true)) {
+                state = State.ERROR;
+                p1.addError();
+                p2.addDraw();
+                return state;
+            }
         } else {
-            p2.doMove(board, false);
+            if (!p2.doMove(board, false)) {
+                state = State.ERROR;
+                p1.addDraw();
+                p2.addError();
+                return state;
+            }
         }
         return updateGameState();
     }
@@ -263,14 +278,13 @@ public class Game {
     }
 
     public static void main(String[] args) {
-        FeedForwardNN ffnn = new FeedForwardNN(Population.ffnnShape);
-//        Game game = new Game(height, width, new RandomPlayer(), new HumanPlayer());
-//        Game game = new Game(height, width, new SimpleAIPlayer(), new HumanPlayer());
-        Game game = new Game(new SimpleAIPlayer(), new FFNNAIPlayer(ffnn));
-//        Game game = new Game(height, width, new FFNNAIPlayer(ffnn), new SimpleAIPlayer());
-        State s = game.play();
-        System.out.println(game.board);
-        System.out.println("Game result: " + s);
+        FeedForwardNN ffnn = new FeedForwardNN(Settings.ffnnShape);
+//        Game game = new Game(new RandomPlayer(), new HumanPlayer());
+//        Game game = new Game(new SimpleAIPlayer(), new HumanPlayer());
+        Game game = new Game(new FFNNAIPlayer(new FeedForwardNN(Settings.ffnnShape)), new FFNNAIPlayer(new FeedForwardNN(Settings.ffnnShape)));
+//        Game game = new Game(new SimpleAIPlayer(), new FFNNAIPlayer(ffnn));
+//        Game game = new Game(new FFNNAIPlayer(ffnn), new SimpleAIPlayer());
+        State s = game.play(true);
     }
 
 }

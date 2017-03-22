@@ -8,6 +8,7 @@ package be.marcowillems.connect4ai.players;
 import be.marcowillems.connect4ai.game.Board;
 import be.marcowillems.connect4ai.nn.FeedForwardNN;
 import be.marcowillems.connect4ai.util.Matrix;
+import java.util.PriorityQueue;
 
 /**
  *
@@ -15,33 +16,58 @@ import be.marcowillems.connect4ai.util.Matrix;
  */
 public class FFNNAIPlayer extends Player implements Comparable<FFNNAIPlayer> {
 
-    public static final double DRAW_WEIGHT = 0.5;
-    public static final double MOVES_WEIGHT = 0.0;
-
     public final FeedForwardNN ffnn;
 
-    public FFNNAIPlayer(FeedForwardNN bpn) {
-        this.ffnn = bpn;
+    public FFNNAIPlayer(FeedForwardNN ffnn) {
+        this.ffnn = ffnn;
     }
 
     @Override
     public boolean _doMove(Board b, boolean isP1) {
         Matrix output = ffnn.run(new Matrix(b.toArray()));
-        int move = 0;
-        for (int i = 1; i < output.w; i++) {
-            if (output.get(0, move) < output.get(0, i)) {
-                move = i;
-            }
+        PriorityQueue<NextMove> queue = new PriorityQueue<>();
+        for (int i = 0; i < output.w; i++) {
+            queue.add(new NextMove(i, 1 / output.get(0, i)));
         }
+        boolean result = b.put(queue.remove().action, isP1);
+        while (!result) {
+            result = b.put(queue.remove().action, isP1);
+        }
+        return result;
 //        double output = ffnn.run(new Matrix(b.toArray())).get(0, 0) * (b.getWidth() - 1);
 //        System.out.println("RNN output: " + output);
 //        int move = (int) output;
-        return b.put(move, isP1);
+//        return b.put(move, isP1);
     }
 
     @Override
     public int compareTo(FFNNAIPlayer o) {
-        return (int) (getPlaycount() * (getScore(DRAW_WEIGHT, DRAW_WEIGHT) - o.getScore(DRAW_WEIGHT, DRAW_WEIGHT)));
+        return (int) (100000 * (o.getScore() - getScore()));
+    }
+
+    private class NextMove implements Comparable<NextMove> {
+
+        final double priority;
+        final int action;
+
+        public NextMove(int action, double priority) {
+            this.action = action;
+            this.priority = priority;
+        }
+
+        public boolean apply(Board b, boolean isP1) {
+            return b.put(action, isP1);
+        }
+
+        @Override
+        public int compareTo(NextMove o) {
+            return (int) (1000 * (priority - o.priority));
+        }
+
+        @Override
+        public String toString() {
+            return "{r:" + action + "|" + priority + "}";
+        }
     }
 
 }
